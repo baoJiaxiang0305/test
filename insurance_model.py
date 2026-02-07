@@ -25,6 +25,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # Log transform the target to handle skewness
+# Insurance claims are right-skewed; log transform stabilizes variance and
+# helps the model learn relationships more effectively
 y_train_log = np.log1p(y_train)
 y_test_log = np.log1p(y_test)
 
@@ -42,7 +44,7 @@ base = ExtraTreesRegressor(
 param_dist = {
     'max_depth': [10, 20, 30, None],
     'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 5, 10],  # Smaller values to capture more detail
+    'min_samples_leaf': [1, 2, 5, 10],  # Includes 1 to allow CV to find optimal value; ensemble nature reduces overfitting risk
     'max_features': ['sqrt', 'log2', None]
 }
 

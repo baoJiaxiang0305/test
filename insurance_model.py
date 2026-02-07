@@ -28,21 +28,21 @@ X_train, X_test, y_train, y_test = train_test_split(
 y_train_log = np.log1p(y_train)
 y_test_log = np.log1p(y_test)
 
-# Define base estimator with absolute_error criterion
-# This is the problematic configuration mentioned in the issue
+# Define base estimator with squared_error criterion
+# Fixed: Changed from "absolute_error" to "squared_error" to align with R² evaluation
 base = ExtraTreesRegressor(
     n_estimators=100,
-    criterion="absolute_error",  # Predicts conditional median
+    criterion="squared_error",  # Predicts conditional mean (aligns with R² and RMSE)
     random_state=42,
     n_jobs=-1
 )
 
 # Define parameter distribution for RandomizedSearchCV
-# The min_samples_leaf values are too high, causing underfitting
+# Fixed: Reduced min_samples_leaf values to capture more detail and reduce underfitting
 param_dist = {
     'max_depth': [10, 20, 30, None],
     'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [2, 5, 10, 20],  # Too high, causes underfitting
+    'min_samples_leaf': [1, 2, 5, 10],  # Smaller values to capture more detail
     'max_features': ['sqrt', 'log2', None]
 }
 
@@ -77,6 +77,6 @@ print(f"\nBest parameters: {random_search.best_params_}")
 print(f"R² Score: {r2:.4f}")
 print(f"RMSE: {rmse:.2f}")
 
-# The problem: Using criterion="absolute_error" optimizes for MAE (median),
-# but we evaluate with R² and RMSE (which expect mean predictions).
-# This mismatch leads to poor R² scores, especially with skewed distributions.
+# Fixed: Using criterion="squared_error" now aligns with R² and RMSE evaluation.
+# The model predicts the conditional mean, which is the optimal predictor for squared error loss.
+# Combined with smaller min_samples_leaf values, the model can better capture complex relationships.
